@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Graylog Grok Builder</title>
+  <script>
+    (function () {
+      var key = "ai-grok-builder:theme";
+      var saved = null;
+      try { saved = localStorage.getItem(key); } catch (_) {}
+      var dark = saved ? saved === "dark"
+        : !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.setAttribute("data-bs-theme", dark ? "dark" : "light");
+    })();
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg border-bottom bg-body-tertiary">
+  <div class="container-fluid">
+    <span class="navbar-brand fw-semibold">AI Graylog Grok Builder</span>
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <span id="badge-ollama" class="badge text-bg-secondary">Ollama …</span>
+      <span id="badge-graylog" class="badge text-bg-secondary">Graylog …</span>
+      <div class="input-group input-group-sm" style="width: 20rem">
+        <span class="input-group-text">model</span>
+        <select id="model-input" class="form-select form-select-sm" title="Ollama model">
+          <option value="">loading models…</option>
+        </select>
+        <button class="btn btn-outline-secondary" id="btn-model-refresh"
+                title="Refresh model list from Ollama">&#8635;</button>
+      </div>
+      <button id="btn-theme" type="button" class="btn btn-sm btn-outline-secondary"
+              title="Switch to dark mode" aria-pressed="false">&#127769; Dark</button>
+    </div>
+  </div>
+</nav>
+
+<main class="container-fluid py-3">
+
+  <!-- 1. sample -->
+  <div class="card mb-3">
+    <div class="card-header py-2">1 &middot; Sample log line</div>
+    <div class="card-body">
+      <textarea id="sample" class="form-control font-monospace" rows="3"
+                placeholder="Paste a raw log line, or fetch one from Graylog&hellip;"></textarea>
+      <div class="mt-2">
+        <label class="form-label small mb-1" for="context">Context / schema hints (optional)</label>
+        <textarea id="context" class="form-control form-control-sm" rows="2"
+                  placeholder="e.g. nginx, firewall, auth; or list expected field names: src_ip, dst_ip, http_method, ..."></textarea>
+      </div>
+      <div class="d-flex gap-2 mt-2 flex-wrap">
+        <button id="btn-fetch" class="btn btn-outline-secondary"
+                data-bs-toggle="modal" data-bs-target="#messages-modal">Fetch from Graylog&hellip;</button>
+        <button id="btn-generate" class="btn btn-primary">Generate with AI</button>
+        <button id="btn-clear" class="btn btn-outline-danger">Clear</button>
+        <div class="d-flex align-items-center gap-1 ms-2">
+          <label class="form-label small mb-0" for="max-repairs">Repairs</label>
+          <input id="max-repairs" type="number" class="form-control form-control-sm" style="width:4rem" min="0" max="5" value="1" title="Max repair iterations (0=off)">
+        </div>
+        <div class="form-check align-self-center ms-1">
+          <input class="form-check-input" type="checkbox" id="chk-enrich" checked>
+          <label class="form-check-label small" for="chk-enrich" title="One automatic extra pass to add structured fields the AI left as literal text">Enrich</label>
+        </div>
+        <span id="generate-status" class="text-secondary small align-self-center"></span>
+      </div>
+      <div id="generate-warnings" class="small mt-2"></div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- 2. canvas -->
+    <div class="col-lg-7">
+      <div class="card mb-3">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+          <span>2 &middot; Pattern editor</span>
+          <span id="match-badge" class="badge text-bg-secondary">no pattern yet</span>
+        </div>
+        <div class="card-body">
+          <p class="text-secondary small mb-2">
+            Click a <span class="hl-demo">highlighted field</span> to edit its key or pattern.
+            Select any literal text to turn it into a capture.
+          </p>
+          <div id="canvas" class="canvas font-monospace"></div>
+        </div>
+      </div>
+
+      <!-- 3. grok -->
+      <div class="card mb-3">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+          <span>3 &middot; Grok pattern</span>
+          <button class="btn btn-sm btn-outline-secondary" data-copy="grok-out">Copy</button>
+        </div>
+        <div class="card-body">
+          <input id="grok-out" class="form-control font-monospace" readonly
+                 value="(run Generate with AI to begin)">
+        </div>
+      </div>
+
+      <!-- 4. rule -->
+      <div class="card mb-3">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+          <span>4 &middot; Graylog pipeline rule <span class="text-secondary small">(read-only &mdash; copy into Graylog)</span></span>
+          <button class="btn btn-sm btn-outline-secondary" data-copy="rule-out">Copy</button>
+        </div>
+        <div class="card-body">
+          <textarea id="rule-out" class="form-control font-monospace" rows="10" readonly></textarea>
+          <div class="d-flex gap-2 mt-2 flex-wrap">
+            <button id="btn-parse" class="btn btn-outline-primary btn-sm">Validate in Graylog</button>
+            <button id="btn-simulate" class="btn btn-outline-primary btn-sm">Simulate on Graylog</button>
+            <button id="btn-grok-test" class="btn btn-outline-primary btn-sm">Grok test in Graylog</button>
+            <button id="btn-dup" class="btn btn-outline-warning btn-sm">Check duplicates</button>
+            <button id="btn-push" class="btn btn-success btn-sm">Push rule to Graylog&hellip;</button>
+            <span id="rule-status" class="small align-self-center"></span>
+          </div>
+          <div class="form-check small mt-2 d-none" id="pipeline-push-wrap">
+            <input class="form-check-input" type="checkbox" id="chk-pipeline">
+            <label class="form-check-label" for="chk-pipeline">
+              Also add this rule to pipeline <strong id="pipeline-target"></strong>
+              (stage 0)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header py-2">Rule settings</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label small mb-1" for="cfg-name">Rule name</label>
+            <input id="cfg-name" class="form-control form-control-sm" value="AI generated grok rule">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small mb-1" for="cfg-desc">Description</label>
+            <input id="cfg-desc" class="form-control form-control-sm" placeholder="optional">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small mb-1" for="cfg-cond">Condition (when)</label>
+            <select id="cfg-cond" class="form-select form-select-sm">
+              <option value="always">Always (true)</option>
+              <option value="has_field">Field exists</option>
+              <option value="contains">Field contains value</option>
+              <option value="regex">Message matches regex</option>
+            </select>
+          </div>
+          <div class="mb-2 d-none" id="cond-field">
+            <label class="form-label small mb-1" for="cfg-cond-field">Field</label>
+            <select id="cfg-cond-field" class="form-select form-select-sm">
+              <option value="">(no fields yet - fetch a message or add captures)</option>
+            </select>
+          </div>
+          <div class="mb-2 d-none" id="cond-value">
+            <label class="form-label small mb-1" for="cfg-cond-value">Contains value</label>
+            <input id="cfg-cond-value" class="form-control form-control-sm" placeholder="example.org">
+          </div>
+          <div class="mb-2 d-none" id="cond-regex">
+            <label class="form-label small mb-1" for="cfg-cond-regex">Regex</label>
+            <input id="cfg-cond-regex" class="form-control form-control-sm" placeholder="^POST ">
+          </div>
+          <div class="mb-0">
+            <label class="form-label small mb-1" for="cfg-source-field">Source field</label>
+            <input id="cfg-source-field" class="form-control form-control-sm" value="message">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- side panel -->
+    <div class="col-lg-5">
+      <div class="card mb-3">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+          <span>Key / value pairs</span>
+          <button id="btn-add-capture" class="btn btn-sm btn-outline-secondary"
+                  title="Select text in the sample, then click here">+ Capture</button>
+        </div>
+        <div class="card-body p-0" style="max-height: 18rem; overflow:auto">
+          <table class="table table-sm mb-0 align-middle">
+            <thead>
+              <tr><th>Key</th><th>Pattern</th><th>Value</th></tr>
+            </thead>
+            <tbody id="fields-body">
+              <tr><td colspan="3" class="text-secondary small p-3">No captures yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="d-none" id="existing-fields-wrap">
+          <div class="px-3 py-2 border-top bg-body-tertiary small fw-semibold">
+            Existing fields <span class="text-secondary fw-normal">(from Graylog message - click to add as capture)</span>
+          </div>
+          <div style="max-height: 24rem; overflow:auto">
+            <table class="table table-sm mb-0 align-middle">
+              <tbody id="existing-fields-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer py-2 small" id="warnings"></div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+          <span>Example database</span>
+          <span class="small text-secondary" id="examples-count"></span>
+        </div>
+        <div class="card-body py-2">
+          <p class="small text-secondary mb-2">
+            Verified patterns are fed back to the model as examples. The more you
+            keep here, the better it matches your formats.
+          </p>
+          <div class="d-flex gap-2">
+            <button id="btn-save-example" class="btn btn-sm btn-outline-primary flex-fill">
+              Save current
+            </button>
+            <button id="btn-manage-examples" class="btn btn-sm btn-outline-secondary"
+                    data-bs-toggle="modal" data-bs-target="#examples-modal">
+              Manage&hellip;
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+          <span>Grok catalog</span>
+          <span class="small text-secondary" id="catalog-count"></span>
+        </div>
+        <div class="card-body py-2">
+          <button id="btn-sync-patterns" class="btn btn-sm btn-outline-secondary w-100">
+            Sync patterns from Graylog
+          </button>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+          <span>Graylog fields</span>
+          <span class="small text-secondary" id="fields-count"></span>
+        </div>
+        <div class="card-body py-2">
+          <p class="small text-secondary mb-2">
+            Existing field names are offered to the AI so it reuses them instead of
+            inventing duplicates. Read from the indexer mapping (metadata only).
+          </p>
+          <button id="btn-view-fields" class="btn btn-sm btn-outline-secondary w-100"
+                  data-bs-toggle="modal" data-bs-target="#fields-modal">
+            View field names&hellip;
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- capture popover -->
+<div id="capture-pop" class="popover-form d-none">
+  <div class="popover-form-title" id="pop-title">Edit capture</div>
+  <div class="small text-secondary font-monospace text-truncate" id="pop-range"></div>
+  <label class="small mb-1 mt-2">Key name</label>
+  <input id="pop-key" class="form-control form-control-sm font-monospace"
+         placeholder="src_ip" autocomplete="off">
+  <label class="small mb-1 mt-2">Grok pattern</label>
+  <input id="pop-pattern" list="patterns-list" class="form-control form-control-sm font-monospace"
+         placeholder="IPORHOST" autocomplete="off">
+  <datalist id="patterns-list"></datalist>
+  <div class="d-flex gap-2 mt-3">
+    <button id="pop-save" class="btn btn-sm btn-primary flex-fill">Save</button>
+    <button id="pop-delete" class="btn btn-sm btn-outline-danger">Remove</button>
+    <button id="pop-cancel" class="btn btn-sm btn-outline-secondary">Cancel</button>
+  </div>
+  <div id="pop-error" class="text-danger small mt-2 d-none"></div>
+</div>
+
+<!-- fetch messages modal -->
+<div class="modal fade" id="messages-modal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title">Fetch messages from Graylog</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="small mb-1" for="msg-query">Query (Lucene)</label>
+            <input id="msg-query" class="form-control form-control-sm" placeholder="*">
+          </div>
+          <div class="col-3">
+            <label class="small mb-1" for="msg-range">Time range</label>
+            <select id="msg-range" class="form-select form-select-sm">
+              <option value="300">last 5 min</option>
+              <option value="3600" selected>last hour</option>
+              <option value="86400">last 24 h</option>
+              <option value="604800">last 7 days</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label class="small mb-1" for="msg-limit">Show up to</label>
+            <input id="msg-limit" type="number" class="form-control form-control-sm" value="20" min="1" max="100">
+          </div>
+        </div>
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="msg-only-uncovered" checked>
+          <label class="form-check-label small" for="msg-only-uncovered"
+                 title="Skip messages an existing pipeline rule already extracts fields from">
+            Only messages with no rule yet
+          </label>
+        </div>
+        <div class="mb-2 d-none" id="msg-scan-wrap">
+          <label class="small mb-1" for="msg-scan">Scan up to (messages)</label>
+          <input id="msg-scan" type="number" class="form-control form-control-sm"
+                 value="300" min="20" max="2000" step="10"
+                 title="How many messages to look through before giving up. Lower it if the search is slow.">
+        </div>
+        <button id="btn-msg-search" class="btn btn-sm btn-primary mb-2">Search</button>
+        <div id="msg-status" class="small text-secondary mb-2"></div>
+        <div id="messages-list" style="max-height: 20rem; overflow:auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- graylog fields modal -->
+<div class="modal fade" id="fields-modal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title">
+          Graylog fields <span id="fields-modal-count" class="text-secondary fs-6"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex gap-2 mb-2 align-items-center">
+          <input id="fields-filter" class="form-control form-control-sm" placeholder="filter by name…">
+          <button id="btn-fields-refresh" class="btn btn-sm btn-outline-secondary text-nowrap">
+            Refresh
+          </button>
+        </div>
+        <div id="fields-status" class="small text-secondary mb-2"></div>
+        <div id="fields-list" class="d-flex flex-wrap gap-1"
+             style="max-height: 55vh; overflow:auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast-box d-none"></div>
+
+<!-- example database modal -->
+<div class="modal fade" id="examples-modal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title">
+          Example database <span id="ex-modal-count" class="text-secondary fs-6"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex gap-2 mb-2 flex-wrap align-items-center">
+          <button id="btn-example-add-current" class="btn btn-sm btn-primary">
+            Add current sample + captures
+          </button>
+          <button id="btn-examples-refresh" class="btn btn-sm btn-outline-secondary">Refresh</button>
+          <button id="btn-examples-clear" class="btn btn-sm btn-outline-danger ms-auto">Clear all</button>
+        </div>
+
+        <div id="example-form" class="border rounded p-2 mb-3 d-none">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small fw-semibold" id="example-form-title">Add example</span>
+            <button id="btn-example-fill" class="btn btn-sm btn-outline-secondary"
+                    title="Copy the current sample and captures into this form">
+              Fill from current
+            </button>
+          </div>
+          <label class="small mb-1" for="ex-sample">Sample log line</label>
+          <textarea id="ex-sample" class="form-control form-control-sm font-monospace" rows="2"></textarea>
+          <label class="small mb-1 mt-2" for="ex-segments">Segments (JSON)</label>
+          <textarea id="ex-segments" class="form-control form-control-sm font-monospace" rows="5"
+                    placeholder='{"segments": [{"type": "capture", ...}]}'></textarea>
+          <div class="d-flex gap-2 mt-2">
+            <button id="btn-example-save" class="btn btn-sm btn-primary">Save</button>
+            <button id="btn-example-cancel" class="btn btn-sm btn-outline-secondary">Cancel</button>
+            <span id="example-form-error" class="text-danger small align-self-center"></span>
+          </div>
+        </div>
+
+        <div style="max-height: 50vh; overflow:auto">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr><th>Sample</th><th>Captures</th><th>Source</th><th></th></tr>
+            </thead>
+            <tbody id="examples-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

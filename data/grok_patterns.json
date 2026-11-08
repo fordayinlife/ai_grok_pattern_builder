@@ -1,0 +1,347 @@
+[
+ {
+  "category": "general",
+  "name": "USERNAME",
+  "pattern": "[a-zA-Z0-9._-]+"
+ },
+ {
+  "category": "general",
+  "name": "USER",
+  "pattern": "%{USERNAME}"
+ },
+ {
+  "category": "general",
+  "name": "BASE10NUM",
+  "pattern": "(?<![0-9.+-])(?>[+-]?(?:(?:[0-9]+(?:\\.[0-9]+)?)|(?:\\.[0-9]+)))"
+ },
+ {
+  "category": "general",
+  "name": "BASE16FLOAT",
+  "pattern": "\\b(?<![0-9A-Fa-f.])(?:[+-]?(?:0x)?(?:(?:[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]*)?)|(?:\\.[0-9A-Fa-f]+)))\\b"
+ },
+ {
+  "category": "general",
+  "name": "NUMBER",
+  "pattern": "%{BASE10NUM}"
+ },
+ {
+  "category": "general",
+  "name": "BASE16NUM",
+  "pattern": "(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))"
+ },
+ {
+  "category": "general",
+  "name": "INT",
+  "pattern": "(?:[+-]?(?:[0-9]+))"
+ },
+ {
+  "category": "general",
+  "name": "NONNEGINT",
+  "pattern": "\\b(?:[0-9]+)\\b"
+ },
+ {
+  "category": "general",
+  "name": "POSINT",
+  "pattern": "\\b(?:[1-9][0-9]*)\\b"
+ },
+ {
+  "category": "general",
+  "name": "WORD",
+  "pattern": "\\b\\w+\\b"
+ },
+ {
+  "category": "general",
+  "name": "NOTSPACE",
+  "pattern": "\\S+"
+ },
+ {
+  "category": "general",
+  "name": "SPACE",
+  "pattern": "\\s*"
+ },
+ {
+  "category": "general",
+  "name": "DATA",
+  "pattern": ".*?"
+ },
+ {
+  "category": "general",
+  "name": "GREEDYDATA",
+  "pattern": ".*"
+ },
+ {
+  "category": "general",
+  "name": "QUOTEDSTRING",
+  "pattern": "(?>(?<!\\\\)(?>\"(?>\\\\.|[^\\\\\"])+\"|\"\"|(?>'(?>\\\\.|[^\\\\'])+')|''|(?>`(?>\\\\.|[^\\\\`])+`)|``))"
+ },
+ {
+  "category": "general",
+  "name": "UUID",
+  "pattern": "[A-Fa-f0-9]{8}-(?:[A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}"
+ },
+ {
+  "category": "datetime",
+  "name": "MONTH",
+  "pattern": "\\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\b"
+ },
+ {
+  "category": "datetime",
+  "name": "MONTHNUM",
+  "pattern": "(?:0?[1-9]|1[0-2])"
+ },
+ {
+  "category": "datetime",
+  "name": "MONTHNUM2",
+  "pattern": "(?:0[1-9]|1[0-2])"
+ },
+ {
+  "category": "datetime",
+  "name": "MONTHDAY",
+  "pattern": "(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9])"
+ },
+ {
+  "category": "datetime",
+  "name": "DAY",
+  "pattern": "(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)"
+ },
+ {
+  "category": "datetime",
+  "name": "YEAR",
+  "pattern": "(?>\\d\\d){1,2}"
+ },
+ {
+  "category": "datetime",
+  "name": "HOUR",
+  "pattern": "(?:2[0123]|[01]?\\d)"
+ },
+ {
+  "category": "datetime",
+  "name": "MINUTE",
+  "pattern": "(?:[0-5]\\d)"
+ },
+ {
+  "category": "datetime",
+  "name": "SECOND",
+  "pattern": "(?:(?:[0-5]?\\d|60)(?:[:.,]\\d+)?)"
+ },
+ {
+  "category": "datetime",
+  "name": "TIME",
+  "pattern": "(?!<[0-9])%{HOUR}:%{MINUTE}(?::%{SECOND})(?![0-9])"
+ },
+ {
+  "category": "datetime",
+  "name": "DATE_US",
+  "pattern": "%{MONTHNUM}[/-]%{MONTHDAY}[/-]%{YEAR}"
+ },
+ {
+  "category": "datetime",
+  "name": "DATE_EU",
+  "pattern": "%{MONTHDAY}[./-]%{MONTHNUM}[./-]%{YEAR}"
+ },
+ {
+  "category": "datetime",
+  "name": "ISO8601_TIMEZONE",
+  "pattern": "(?:Z|[+-]%{HOUR}(?::?%{MINUTE}))"
+ },
+ {
+  "category": "datetime",
+  "name": "ISO8601_SECOND",
+  "pattern": "(?:%{SECOND}|60)"
+ },
+ {
+  "category": "datetime",
+  "name": "TIMESTAMP_ISO8601",
+  "pattern": "%{YEAR}-%{MONTHNUM}-%{MONTHDAY}[T ]%{HOUR}:?%{MINUTE}(?::%{SECOND})?%{ISO8601_TIMEZONE}?"
+ },
+ {
+  "category": "datetime",
+  "name": "DATE",
+  "pattern": "%{DATE_US}|%{DATE_EU}"
+ },
+ {
+  "category": "datetime",
+  "name": "DATESTAMP",
+  "pattern": "%{DATE}[- ]%{TIME}"
+ },
+ {
+  "category": "datetime",
+  "name": "TZ",
+  "pattern": "(?:[PMCE][SD]T|UTC)"
+ },
+ {
+  "category": "datetime",
+  "name": "DATESTAMP_RFC822",
+  "pattern": "%{DAY} %{MONTH} %{MONTHDAY} %{YEAR} %{TIME} %{TZ}"
+ },
+ {
+  "category": "datetime",
+  "name": "DATESTAMP_RFC2822",
+  "pattern": "%{DAY}, %{MONTHDAY} %{MONTH} %{YEAR} %{TIME} %{ISO8601_TIMEZONE}"
+ },
+ {
+  "category": "datetime",
+  "name": "DATESTAMP_OTHER",
+  "pattern": "%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{TZ} %{YEAR}"
+ },
+ {
+  "category": "datetime",
+  "name": "DATESTAMP_EVENTLOG",
+  "pattern": "%{YEAR}%{MONTHNUM2}%{MONTHDAY}%{HOUR}%{MINUTE}%{SECOND}"
+ },
+ {
+  "category": "log",
+  "name": "PROG",
+  "pattern": "[\\w._/%-]+"
+ },
+ {
+  "category": "log",
+  "name": "SYSLOGTIMESTAMP",
+  "pattern": "%{MONTH} +%{MONTHDAY} %{TIME}"
+ },
+ {
+  "category": "log",
+  "name": "SYSLOGPROG",
+  "pattern": "%{PROG:program}(?:\\[%{POSINT:pid}\\])?"
+ },
+ {
+  "category": "log",
+  "name": "SYSLOGHOST",
+  "pattern": "%{IPORHOST}"
+ },
+ {
+  "category": "log",
+  "name": "SYSLOGFACILITY",
+  "pattern": "<%{NONNEGINT:facility}.%{NONNEGINT:priority}>"
+ },
+ {
+  "category": "log",
+  "name": "SYSLOGBASE",
+  "pattern": "%{SYSLOGTIMESTAMP:timestamp} (?:%{SYSLOGFACILITY} )?%{SYSLOGHOST:logsource} %{SYSLOGPROG}:"
+ },
+ {
+  "category": "log",
+  "name": "HTTPDATE",
+  "pattern": "%{MONTHDAY}/%{MONTH}/%{YEAR}:%{TIME} %{INT}"
+ },
+ {
+  "category": "log",
+  "name": "QS",
+  "pattern": "%{QUOTEDSTRING}"
+ },
+ {
+  "category": "log",
+  "name": "COMMONAPACHELOG",
+  "pattern": "%{IPORHOST:clientip} %{USER:ident} %{USER:auth} \\[%{HTTPDATE:timestamp}\\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-)"
+ },
+ {
+  "category": "log",
+  "name": "COMBINEDAPACHELOG",
+  "pattern": "%{COMMONAPACHELOG} %{QS:referrer} %{QS:agent}"
+ },
+ {
+  "category": "log",
+  "name": "LOGLEVEL",
+  "pattern": "([Aa]lert|ALERT|[Tt]race|TRACE|[Dd]ebug|DEBUG|[Nn]otice|NOTICE|[Ii]nfo|INFO|[Ww]arn?(?:ing)?|WARN?(?:ING)?|[Ee]rr?(?:or)?|ERR?(?:OR)?|[Cc]rit?(?:ical)?|CRIT?(?:ICAL)?|[Ff]atal|FATAL|[Ss]evere|SEVERE|EMERG(?:ENCY)?|[Ee]merg(?:ency)?)"
+ },
+ {
+  "category": "network",
+  "name": "MAC",
+  "pattern": "(?:%{CISCOMAC}|%{WINDOWSMAC}|%{COMMONMAC})"
+ },
+ {
+  "category": "network",
+  "name": "CISCOMAC",
+  "pattern": "(?:(?:[A-Fa-f0-9]{4}\\.){2}[A-Fa-f0-9]{4})"
+ },
+ {
+  "category": "network",
+  "name": "COMMONMAC",
+  "pattern": "(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})"
+ },
+ {
+  "category": "network",
+  "name": "WINDOWSMAC",
+  "pattern": "(?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2})"
+ },
+ {
+  "category": "network",
+  "name": "HOSTNAME",
+  "pattern": "\\b(?:[0-9A-Za-z][0-9A-Za-z-]{0,62})(?:\\.(?:[0-9A-Za-z][0-9A-Za-z-]{0,62}))*(\\.?|\\b)"
+ },
+ {
+  "category": "network",
+  "name": "HOSTPORT",
+  "pattern": "%{IPORHOST}:%{POSINT}"
+ },
+ {
+  "category": "network",
+  "name": "IPORHOST",
+  "pattern": "(?:%{HOSTNAME}|%{IP})"
+ },
+ {
+  "category": "network",
+  "name": "IP",
+  "pattern": "(?:%{IPV6}|%{IPV4})"
+ },
+ {
+  "category": "network",
+  "name": "IPV6",
+  "pattern": "((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))(%.+)?"
+ },
+ {
+  "category": "network",
+  "name": "IPV4",
+  "pattern": "(?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])"
+ },
+ {
+  "category": "path",
+  "name": "PATH",
+  "pattern": "(?:%{UNIXPATH}|%{WINPATH})"
+ },
+ {
+  "category": "path",
+  "name": "UNIXPATH",
+  "pattern": "(?>/(?:[\\w_%!$@:.,~-]+|\\\\.)*)+"
+ },
+ {
+  "category": "path",
+  "name": "TTY",
+  "pattern": "(?:/dev/(pts|tty[pq]?)(\\w+)?/?(?:[0-9]+))"
+ },
+ {
+  "category": "path",
+  "name": "WINPATH",
+  "pattern": "(?>[A-Za-z]+:|\\\\)(?:\\\\[^\\\\?*]*)+"
+ },
+ {
+  "category": "path",
+  "name": "URIPROTO",
+  "pattern": "[A-Za-z]+(\\+[A-Za-z+]+)?"
+ },
+ {
+  "category": "path",
+  "name": "URIHOST",
+  "pattern": "%{IPORHOST}(?::%{POSINT:port})?"
+ },
+ {
+  "category": "path",
+  "name": "URIPATH",
+  "pattern": "(?:/[A-Za-z0-9$.+!*'(){},~:;=@#%_\\-]*)+"
+ },
+ {
+  "category": "path",
+  "name": "URIPARAM",
+  "pattern": "\\?[A-Za-z0-9$.+!*'|(){},~@#%&/=:;_?\\-\\[\\]]*"
+ },
+ {
+  "category": "path",
+  "name": "URIPATHPARAM",
+  "pattern": "%{URIPATH}(?:%{URIPARAM})?"
+ },
+ {
+  "category": "path",
+  "name": "URI",
+  "pattern": "%{URIPROTO}://(?:%{USER}(?::[^@]*)?@)?(?:%{URIHOST})?(?:%{URIPATHPARAM})?"
+ }
+]

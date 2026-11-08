@@ -1,0 +1,26 @@
+# secrets / local config
+.env
+data/synced_patterns.json
+data/examples.json
+
+# virtual environments
+venv/
+.venv/
+
+# python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# logs
+*.log
+
+# editors / os
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
