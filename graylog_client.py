@@ -36,7 +36,7 @@ class GraylogClient:
         self.session = requests.Session()
         self.session.auth = (token, "token")
         self.session.headers.update({
-            "X-Requested-By": "ai-grok-pattern-builder",
+            "X-Requested-By": "loggrok-ai",
             "Accept": "application/json",
         })
         self.session.verify = verify_ssl

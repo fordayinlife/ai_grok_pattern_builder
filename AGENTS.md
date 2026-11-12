@@ -1,6 +1,6 @@
 # AGENTS.md
 
-AI Graylog Grok Builder: turn a raw log line into a Graylog pipeline rule.
+LogGrok AI (Graylog Edition): turn a raw log line into a Graylog pipeline rule.
 A local Ollama model proposes grok captures; the server verifies/repairs them
 against a bundled grok catalog, and the UI lets you edit captures and copy or
 push the resulting rule to a Graylog instance.
@@ -189,7 +189,11 @@ stage 0 of the pipeline whose title matches (case-insensitive), creating that
 pipeline if it does not exist. Pipeline failures are reported in the response's
 `pipeline.error` and never undo the already-created rule. The UI offers a
 "Also add this rule to pipeline <input> (stage 0)" checkbox while a message
-with an input title is loaded. `add_rule_to_pipeline` treats the pipeline's
+with an input title is loaded. The input title is part of the `localStorage`
+snapshot (`persist`/`restore`), so the option survives a reload with the
+restored sample; clearing or hand-editing the sample drops it (and unchecks the
+box) because the loaded message no longer applies. `add_rule_to_pipeline`
+treats the pipeline's
 `source` text as authoritative when deciding whether the rule is already
 referenced (the stage metadata is only a fallback for a pipeline returned
 without a source): the source is what Graylog compiles, so a rule that appears

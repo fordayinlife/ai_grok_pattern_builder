@@ -1,4 +1,4 @@
-/* AI Graylog Grok Builder - front-end */
+/* LogGrok AI (Graylog Edition) - front-end */
 
 const qs = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g,
@@ -96,6 +96,7 @@ function persist() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       sample: state.sample,
+      inputTitle: state.inputTitle,
       ranges: state.ranges,
       config: state.config,
       fields: state.fields,
@@ -118,6 +119,7 @@ function restore() {
     state.sample = saved.sample;
     qs("#sample").value = saved.sample;
   }
+  if (typeof saved.inputTitle === "string") state.inputTitle = saved.inputTitle;
   if (Array.isArray(saved.ranges)) {
     state.ranges = saved.ranges.filter(
       (r) => r && Number.isInteger(r.start) && Number.isInteger(r.end));
@@ -1113,9 +1115,11 @@ function init() {
     state.ranges = [];
     state.fields = {};
     state.fieldsSample = "";
+    state.inputTitle = "";
     qs("#sample").value = "";
     qs("#generate-warnings").innerHTML = "";
     qs("#generate-status").textContent = "";
+    updatePipelineOption();
     scheduleRefresh();
   });
   qs("#btn-model-refresh").addEventListener("click", async () => {
@@ -1163,6 +1167,8 @@ function init() {
     const val = qs("#sample").value;
     if (val === state.sample) return;
     state.sample = val;
+    state.inputTitle = "";
+    updatePipelineOption();
     if (state.ranges.length) {
       state.ranges = [];
       toast("Sample changed - captures cleared");

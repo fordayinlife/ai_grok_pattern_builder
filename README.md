@@ -1,4 +1,4 @@
-# AI Graylog Grok Builder
+# LogGrok AI
 
 Turn a raw log line into a verified [Graylog](https://graylog.org/) pipeline rule with a local LLM.
 
@@ -321,10 +321,23 @@ on automatically before creating the rule.
   locally in `data/examples.json`, which is gitignored.
 - The app contacts only your configured Ollama and Graylog endpoints. The
   browser loads Bootstrap from a CDN.
+- Use at your own risk
+
+## AI Generation & "As-Is" Disclaimer
+
+**Portions of this codebase and associated documentation were generated or assisted by Artificial Intelligence (AI).**
+
+This project is provided strictly as a demonstration/proof-of-concept for educational and experimental purposes. The author makes no representations, warranties, or guarantees—express or implied—regarding the accuracy, completeness, security, reliability, or fitness for a particular purpose of the generated code.
+
+The code may contain errors, omissions, unintended behaviors, or suboptimal implementations. You are solely responsible for reviewing, testing, auditing, and validating all logic, network calls, and syntax before executing it in any environment. 
+
+Under no circumstances shall the author or copyright holder be held liable for any claim, damages, data loss, security compromise, service disruption, or other liability arising from the use of, or inability to use, this software. Use entirely at your own risk.
 
 ## License
 
 [MIT](LICENSE) © 2026 fordayinlife
+
+LogGrok AI is an independent open-source project and is not affiliated with, endorsed by, or sponsored by Graylog, Inc. Graylog is a registered trademark of Graylog, Inc.
 
 Grok pattern definitions are derived from the StreamSets/logstash pattern
 catalog. Bootstrap is served from jsDelivr under its own license.
