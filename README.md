@@ -69,7 +69,7 @@ segment format best. You can switch models in the app's model selector.
 ### 2. Clone and install the app
 
 ```bash
-git clone [<repository-url>](https://github.com/fordayinlife/ai_grok_pattern_builder)
+git clone https://github.com/fordayinlife/ai_grok_pattern_builder
 cd ai_grok_pattern_builder
 ```
 
