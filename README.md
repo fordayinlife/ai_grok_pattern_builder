@@ -10,6 +10,8 @@ renders a ready-to-push Graylog pipeline rule. Nothing is sent to a cloud LLM.
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
+![Description of the screenshot](logrok-screenshot01.png)
+
 ## Features
 
 - **Local AI generation** - Ollama proposes an ordered list of literal text and
